@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: nyt_raw
+    project: nyt-bestsellers-492620
+    dataset: nyt_raw
+    tables:
+      - name: raw_bestsellers

@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: stg_nyt_bestsellers
+    description: Staged NYT bestseller data cleaned from the raw BigQuery table
+    columns:
+      - name: pulled_at
+        description: UTC timestamp of when the ingestion script ran
+        tests:
+          - not_null
+
+      - name: list_name
+        description: NYT category slug
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - hardcover-fiction
+                  - hardcover-nonfiction
+                  - trade-fiction-paperback
+                  - young-adult-hardcover
+                  - childrens-middle-grade-hardcover
+
+      - name: rank
+        description: Position on the list from 1 to 10
+        tests:
+          - not_null
+
+      - name: title
+        description: Book title
+        tests:
+          - not_null
