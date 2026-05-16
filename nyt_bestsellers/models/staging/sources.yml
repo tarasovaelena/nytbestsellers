@@ -2,7 +2,41 @@ version: 2
 
 sources:
   - name: nyt_raw
+    description: >
+      Raw NYT bestseller data loaded by ingest_nyt.py. Each pipeline run
+      appends ~50 rows (5 categories x top 10 books) tagged with a
+      pulled_at timestamp. The pipeline is currently triggered manually;
+      production cadence target is weekly on Wednesdays after the NYT
+      publishes its updated lists (~7pm EST).
     project: nyt-bestsellers-492620
     dataset: nyt_raw
     tables:
       - name: raw_bestsellers
+        description: >
+          Append-only landing table for NYT bestseller snapshots. One row per
+          (pulled_at, list_name, rank). Not deduped — re-running the pipeline
+          on the same day produces duplicate rows. The intermediate model's
+          recency_rank handles this softly by grouping ties.
+        columns:
+          - name: pulled_at
+            description: UTC timestamp of when the ingest script ran.
+          - name: list_name
+            description: NYT category slug (kebab-case).
+          - name: rank
+            description: Position on the list (1–10).
+          - name: title
+            description: Book title in ALL CAPS as returned by the API.
+          - name: author
+            description: >
+              Author string as returned by the API, e.g. "by R.J. Palacio"
+              or "by Aaron Reynolds. Illustrated by Peter Brown".
+          - name: publisher
+            description: Publisher imprint.
+          - name: description
+            description: Book blurb.
+          - name: amazon_url
+            description: Amazon product page URL.
+          - name: weeks_on_list
+            description: Weeks the book has been on this list at snapshot time.
+          - name: raw_json
+            description: Full raw API response for the row, stored as JSON string.

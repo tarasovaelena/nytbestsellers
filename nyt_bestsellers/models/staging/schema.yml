@@ -2,15 +2,26 @@ version: 2
 
 models:
   - name: stg_nyt_bestsellers
-    description: Staged NYT bestseller data cleaned from the raw BigQuery table
+    description: >
+      Cleaned, one-to-one staging view over the raw NYT bestseller table.
+      Applies presentation-layer transformations (title casing, author prefix
+      stripping) and a derived `pulled_date` column for downstream filtering.
+      Preserves every snapshot — no recency filter at this layer.
     columns:
       - name: pulled_at
-        description: UTC timestamp of when the ingestion script ran
+        description: UTC timestamp of when the ingestion script ran.
+        tests:
+          - not_null
+
+      - name: pulled_date
+        description: >
+          Derived from pulled_at (date only, drops time). Used as the snapshot
+          identifier in downstream models.
         tests:
           - not_null
 
       - name: list_name
-        description: NYT category slug
+        description: NYT category slug (raw, kebab-case).
         tests:
           - not_null
           - accepted_values:
@@ -23,11 +34,44 @@ models:
                   - childrens-middle-grade-hardcover
 
       - name: rank
-        description: Position on the list from 1 to 10
+        description: Position on the bestseller list (1 to 10).
         tests:
           - not_null
 
       - name: title
-        description: Book title
+        description: >
+          Book title in Title Case. NYT API returns titles in ALL CAPS; this
+          column applies BigQuery's INITCAP() to capitalize the first letter
+          of each word. Imperfect for English title case (capitalizes "the",
+          "for", etc.) but a major readability improvement.
         tests:
           - not_null
+
+      - name: author
+        description: >
+          Primary author(s) of the book, cleaned. NYT API returns this as
+          "by R.J. Palacio" or "by Aaron Reynolds. Illustrated by Peter Brown".
+          Two REGEXP_REPLACEs strip the leading "by " (case-insensitive) and
+          the optional ". Illustrated by ..." trailing clause, leaving just
+          the primary author name(s).
+        tests:
+          - not_null
+
+      - name: publisher
+        description: Publisher imprint, as returned by the NYT API.
+
+      - name: description
+        description: One-paragraph book blurb from the NYT API.
+
+      - name: amazon_url
+        description: Amazon product page URL for the book.
+
+      - name: weeks_on_list
+        description: >
+          Number of consecutive weeks the book has been on this list, as
+          reported by the NYT API at the time of the snapshot. Cast to INT64.
+
+      - name: raw_json
+        description: >
+          Full raw API response for the book, stored as a JSON string.
+          Kept for debugging and forward-compatibility if new fields are added.

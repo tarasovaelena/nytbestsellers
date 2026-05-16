@@ -1,0 +1,107 @@
+version: 2
+
+models:
+  - name: fct_bestsellers_summary
+    description: >
+      Multi-grain, multi-snapshot summary of NYT bestseller data, built in a
+      single pass with GROUPING SETS. Every weekly snapshot is preserved so
+      dashboards can show period-over-period comparisons. The grain_level
+      column identifies which rollup each row represents; is_latest_snapshot
+      lets consumers default to current state without hard-coding a date.
+    columns:
+      - name: grain_level
+        description: >
+          Which rollup grain this row belongs to. Filter on this in Looker
+          Studio so each tile reads only the rows at its expected grain.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - category_x_publisher
+                  - category_x_author
+                  - category_total
+                  - publisher_total
+                  - author_total
+                  - grand_total
+
+      - name: category_label
+        description: Cleaned category name, or 'ALL CATEGORIES' when rolled up.
+        tests:
+          - not_null
+
+      - name: publisher_label
+        description: Publisher name, or 'ALL PUBLISHERS' when rolled up.
+        tests:
+          - not_null
+
+      - name: author_label
+        description: Author name, or 'ALL AUTHORS' when rolled up.
+        tests:
+          - not_null
+
+      - name: book_appearances
+        description: Count of bestseller list slots at this grain.
+        tests:
+          - not_null
+
+      - name: distinct_titles
+        description: Count of distinct book titles at this grain.
+
+      - name: avg_run_length_weeks
+        description: >
+          Average number of weeks the books at this grain have been on the
+          bestseller list (mean of weeks_on_list).
+
+      - name: median_run_length_weeks
+        description: >
+          Median number of weeks the books at this grain have been on the
+          bestseller list. Computed with APPROX_QUANTILES — more robust than
+          avg when a single long-running outlier (e.g. Wonder at 541 weeks)
+          would skew a small group's mean.
+
+      - name: max_run_length_weeks
+        description: >
+          Longest run on the bestseller list at this grain (max of weeks_on_list).
+
+      - name: new_entries
+        description: Count of books with weeks_on_list <= 1 at this grain (new arrivals).
+
+      - name: returning_entries
+        description: Count of books with weeks_on_list > 1 at this grain.
+
+      - name: pct_of_grand_total
+        description: >
+          book_appearances divided by the same snapshot's grand_total
+          book_appearances, expressed on a 0-100 scale (so 8.0 means 8%, not
+          0.08%). Rounded to 1 decimal. Stored this way so Looker Studio's
+          Percent type renders correctly without a multiplier at the BI layer.
+
+      - name: categories_list
+        description: >
+          Comma-separated list of distinct categories the books at this grain
+          appear in. At the author_total grain, this answers "what genres
+          does this author write in?". At publisher_total grain, "what genres
+          does this publisher span?". Mostly noise at the grand_total grain
+          (concatenates all 5 categories).
+
+      - name: titles_list
+        description: >
+          Semicolon-separated list of distinct book titles at this grain.
+          Most useful at author_total or publisher_total grains. Can get long
+          for prolific publishers.
+
+      - name: snapshot_date
+        description: >
+          The pulled_date this aggregation row belongs to. Every snapshot
+          produces its own set of rows across all six grain levels.
+        tests:
+          - not_null
+
+      - name: is_latest_snapshot
+        description: >
+          True for rows belonging to the most recent snapshot in the model.
+          Dashboards filter on this to default to current state. Computed via
+          `snapshot_date = max(snapshot_date) over ()`.
+        tests:
+          - not_null

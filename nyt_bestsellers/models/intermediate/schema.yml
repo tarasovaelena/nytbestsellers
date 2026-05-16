@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: int_bestsellers_by_category
+    description: >
+      Intermediate model that adds business logic on top of staging:
+      (1) maps raw NYT category slugs to display-ready labels via a CASE
+      statement, and (2) computes a `recency_rank` window function so any
+      downstream consumer can filter to the most-recent-week per category
+      consistently. Keeps every historical snapshot.
+    columns:
+      - name: pulled_date
+        description: Snapshot date (passed through from staging).
+        tests:
+          - not_null
+
+      - name: list_name
+        description: Raw NYT category slug, kept for backward compatibility.
+        tests:
+          - not_null
+
+      - name: list_name_clean
+        description: >
+          Display-ready category label, produced by a CASE statement on
+          list_name. Used as the human-readable category dimension throughout
+          the dashboard.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - 'Hardcover Fiction'
+                  - 'Hardcover Nonfiction'
+                  - 'Trade Paperback'
+                  - 'Young Adult'
+                  - "Children's Middle Grade"
+
+      - name: rank
+        description: Position on the bestseller list (1 to 10).
+        tests:
+          - not_null
+
+      - name: title
+        description: Book title (already Title Cased in staging).
+        tests:
+          - not_null
+
+      - name: author
+        description: Primary author(s), already cleaned in staging.
+        tests:
+          - not_null
+
+      - name: publisher
+        description: Publisher imprint, as returned by the NYT API.
+
+      - name: description
+        description: One-paragraph book blurb from the NYT API.
+
+      - name: amazon_url
+        description: Amazon product page URL for the book.
+
+      - name: weeks_on_list
+        description: >
+          Number of consecutive weeks the book has been on this list at the
+          time of the snapshot (cast to INT64 in staging).
+
+      - name: recency_rank
+        description: >
+          rank() over (partition by list_name order by pulled_date desc).
+          recency_rank = 1 means "most recent snapshot for this category."
+          Downstream models can filter on this to pick the latest week without
+          hard-coding a date. Note: rank() not row_number() — if two pulls
+          land on the same pulled_date, both get rank 1 (intentional, since
+          they represent the same logical snapshot).
+        tests:
+          - not_null

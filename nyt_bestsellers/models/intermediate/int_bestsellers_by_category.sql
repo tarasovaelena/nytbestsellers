@@ -17,8 +17,14 @@ ranked as (
         amazon_url,
         weeks_on_list,
 
-        -- clean up the list name for readability
-        replace(list_name, '-', ' ') as list_name_clean,
+        -- map raw NYT category slugs to display-ready labels
+        case list_name
+            when 'hardcover-fiction'                then 'Hardcover Fiction'
+            when 'hardcover-nonfiction'             then 'Hardcover Nonfiction'
+            when 'trade-fiction-paperback'          then 'Trade Paperback'
+            when 'young-adult-hardcover'            then 'Young Adult'
+            when 'childrens-middle-grade-hardcover' then "Children's Middle Grade"
+        end as list_name_clean,
 
         -- flag the most recent pull for each category
         rank() over (
