@@ -39,7 +39,7 @@ Publishing companies employ people who specialize in specific book categories �
 - [x] Stage 1: Ingestion — Python script pulls 5 NYT categories into BigQuery
 - [x] Stage 2: Transformation — dbt models (staging, intermediate, marts) with data quality tests
 - [ ] Stage 3: Email delivery — per-subscriber category digest
-- [ ] Stage 4: Dashboard — Looker Studio on BigQuery mart tables
+- [x] Stage 4: Dashboard — Looker Studio on BigQuery mart tables
 - [ ] Stage 5: Orchestration — Cloud Scheduler weekly trigger
 
 ---
