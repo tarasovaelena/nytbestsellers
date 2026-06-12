@@ -33,7 +33,7 @@ models:
                   - 'Hardcover Nonfiction'
                   - 'Trade Paperback'
                   - 'Young Adult'
-                  - "Children's Middle Grade"
+                  - 'Childrens Middle Grade'
 
       - name: rank
         description: Position on the bestseller list (1 to 10).

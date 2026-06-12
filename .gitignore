@@ -23,13 +23,14 @@ env/
 .env
 .env.*
 
-# GCP service-account keys. Currently the project uses Application Default
-# Credentials (gcloud auth), so no key file lives in the repo, but these
-# patterns catch common naming if a key is ever added for production deploy.
+# GCP service-account keys. The active key for this project lives outside
+# the repo (in C:\Users\Elena\.gcp\), but these patterns catch the default
+# GCP naming if a key ever gets dropped into the project folder by mistake.
 *-credentials.json
 *-service-account.json
 service-account*.json
 gcp-key*.json
+nyt-bestsellers-*.json
 
 # ============================================================
 # Editor / IDE
@@ -57,6 +58,10 @@ target/
 dbt_packages/
 logs/
 .user.yml
+
+# dbt profiles — environment-specific, never committed (may contain
+# credentials in some setups; even when they don't, they're machine-specific).
+**/profiles.yml
 
 # ============================================================
 # Logs

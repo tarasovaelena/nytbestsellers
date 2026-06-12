@@ -23,7 +23,7 @@ ranked as (
             when 'hardcover-nonfiction'             then 'Hardcover Nonfiction'
             when 'trade-fiction-paperback'          then 'Trade Paperback'
             when 'young-adult-hardcover'            then 'Young Adult'
-            when 'childrens-middle-grade-hardcover' then "Children's Middle Grade"
+            when 'childrens-middle-grade-hardcover' then 'Childrens Middle Grade'
         end as list_name_clean,
 
         -- flag the most recent pull for each category
