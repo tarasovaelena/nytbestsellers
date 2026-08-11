@@ -5,9 +5,10 @@ sources:
     description: >
       Raw NYT bestseller data loaded by ingest_nyt.py. Each pipeline run
       appends ~50 rows (5 categories x top 10 books) tagged with a
-      pulled_at timestamp. The pipeline is currently triggered manually;
-      production cadence target is weekly on Wednesdays after the NYT
-      publishes its updated lists (~7pm EST).
+      pulled_at timestamp. Triggered weekly, externally, by a Windows Task
+      Scheduler wake job (~11:45pm ET Wednesday) that runs
+      scripts/run_weekly_pipeline.py, which starts Docker/Airflow and
+      explicitly calls `airflow dags trigger` — not Airflow's own cron.
     project: nyt-bestsellers-492620
     dataset: nyt_raw
     tables:

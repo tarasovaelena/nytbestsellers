@@ -69,6 +69,14 @@ logs/
 *.log
 
 # ============================================================
+# Local automation (machine-specific, not for the public repo)
+# ============================================================
+# Windows Task Scheduler wake/run automation for this laptop — a personal
+# workaround for manually starting Docker + the Airflow stack weekly, not
+# part of the portfolio pipeline itself.
+scripts/
+
+# ============================================================
 # Personal / private working documents (not for the public repo)
 # ============================================================
 # Internal dashboard documentation, interview prep, draft mocks.

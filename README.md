@@ -16,7 +16,7 @@ Publishing companies employ people who specialize in specific book categories �
 
 ## Architecture
 
-![Project Architecture](pipeline_flowchart.png)
+![Project Architecture](diagrams/pipeline_flowchart.png)
 
 ---
 
@@ -40,7 +40,7 @@ Three pages built on top of `fct_bestsellers_summary`:
 | Transformation | dbt | Staging, intermediate, and mart models |
 | Delivery | Python, SendGrid | Automated email digests per category |
 | Visualization | Looker Studio | Dashboard connected to BigQuery |
-| Orchestration | Apache Airflow | Weekly DAG triggered Thursdays at midnight ET |
+| Orchestration | Airflow via Docker | Weekly pipeline orchestration |
 | Environment | python-dotenv | Credential management |
 
 ---
@@ -51,7 +51,15 @@ Three pages built on top of `fct_bestsellers_summary`:
 - [x] Stage 2: Transformation — dbt models (staging, intermediate, marts) with data quality tests
 - [ ] Stage 3: Email delivery — per-subscriber category digest
 - [x] Stage 4: Dashboard — Looker Studio on BigQuery mart tables
-- [x] Stage 5: Orchestration — Apache Airflow DAG, weekly Thursday midnight ET
+- [x] Stage 5: Orchestration — Apache Airflow DAG, externally triggered weekly via Windows Task Scheduler wake job
+
+---
+
+## Known issues / Lessons learned
+
+**Append-only ingestion is not idempotent.** `ingest_nyt.py` uses BigQuery's streaming insert with no deduplication. When a stuck Airflow task was re-released alongside a manual retry, the same week's bestseller list landed in `raw_bestsellers` twice. Cleaned up with a one-time `DELETE` once BigQuery's streaming buffer flushed (about 2 hours).
+
+Follow-up: add idempotency via a `MERGE` on `(pulled_at, list_name, rank)`, or a `ROW_NUMBER() ... QUALIFY` deduplication step in the staging dbt model.
 
 ---
 
