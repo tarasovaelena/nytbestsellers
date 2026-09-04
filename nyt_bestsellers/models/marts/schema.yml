@@ -56,7 +56,7 @@ models:
       - name: median_run_length_weeks
         description: >
           Median number of weeks the books at this grain have been on the
-          bestseller list. Computed with APPROX_QUANTILES — more robust than
+          bestseller list. Computed with APPROX_QUANTILES, which is more robust than
           avg when a single long-running outlier (e.g. Wonder at 541 weeks)
           would skew a small group's mean.
 

@@ -3,11 +3,28 @@ version: 2
 models:
   - name: stg_nyt_bestsellers
     description: >
-      Cleaned, one-to-one staging view over the raw NYT bestseller table.
-      Applies presentation-layer transformations (title casing, author prefix
-      stripping) and a derived `pulled_date` column for downstream filtering.
-      Preserves every snapshot — no recency filter at this layer.
+      Cleaned staging view over the raw NYT bestseller table. Applies
+      presentation-layer transformations (title casing, author prefix
+      stripping), a derived `pulled_date` column for downstream filtering,
+      and deduplication to the model's true grain of one row per
+      (pulled_date, list_name, rank). Preserves every snapshot; no recency
+      filter at this layer.
+
+      Not strictly one-to-one with the source: raw_bestsellers is
+      append-only and can contain the same day's list more than once if the
+      pipeline is run twice. This model keeps the most recent pull per grain.
     columns:
+      - name: snapshot_row_key
+        description: >
+          Surrogate key (MD5 hex) over pulled_date + list_name + rank, which is this
+          model's grain. The `unique` test below is the guard on the
+          deduplication logic: if duplicate ingestion ever slips through,
+          `dbt build` fails here rather than the numbers quietly doubling in
+          the mart's counts and share-of-voice percentages.
+        tests:
+          - not_null
+          - unique
+
       - name: pulled_at
         description: UTC timestamp of when the ingestion script ran.
         tests:

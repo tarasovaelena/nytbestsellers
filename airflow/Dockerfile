@@ -7,7 +7,7 @@
 #   1. Set `_PIP_ADDITIONAL_REQUIREMENTS` to install packages at container
 #      startup (the "quick" approach used during early development).
 #   2. Build a custom image that bakes dependencies in at image-build time
-#      (this file — the "production-correct" approach).
+#      (this file, the "production-correct" approach).
 #
 # Approach #1 has a startup race condition: services come up before pip
 # install finishes, so anything that runs in the first ~60 seconds may not

@@ -12,13 +12,13 @@ __pycache__/
 venv/
 env/
 
-# Python tooling caches (defensive — kept in case these tools are added later)
+# Python tooling caches (defensive, kept in case these tools are added later)
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 
 # ============================================================
-# Secrets and credentials  —  NEVER COMMIT THESE
+# Secrets and credentials:  NEVER COMMIT THESE
 # ============================================================
 .env
 .env.*
@@ -59,7 +59,7 @@ dbt_packages/
 logs/
 .user.yml
 
-# dbt profiles — environment-specific, never committed (may contain
+# dbt profiles: environment-specific, never committed (may contain
 # credentials in some setups; even when they don't, they're machine-specific).
 **/profiles.yml
 
@@ -71,9 +71,8 @@ logs/
 # ============================================================
 # Local automation (machine-specific, not for the public repo)
 # ============================================================
-# Windows Task Scheduler wake/run automation for this laptop — a personal
-# workaround for manually starting Docker + the Airflow stack weekly, not
-# part of the portfolio pipeline itself.
+# Helper scripts specific to this machine's local setup. Not part of the
+# pipeline itself and not useful outside Elena's laptop.
 scripts/
 
 # ============================================================

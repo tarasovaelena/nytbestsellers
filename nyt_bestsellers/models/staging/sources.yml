@@ -5,19 +5,20 @@ sources:
     description: >
       Raw NYT bestseller data loaded by ingest_nyt.py. Each pipeline run
       appends ~50 rows (5 categories x top 10 books) tagged with a
-      pulled_at timestamp. Triggered weekly, externally, by a Windows Task
-      Scheduler wake job (~11:45pm ET Wednesday) that runs
-      scripts/run_weekly_pipeline.py, which starts Docker/Airflow and
-      explicitly calls `airflow dags trigger` — not Airflow's own cron.
+      pulled_at timestamp. Loaded weekly by the Airflow DAG
+      `nyt_bestsellers_pipeline`, scheduled for Thursdays at 00:00
+      America/New_York, just after the NYT publishes its updated lists.
     project: nyt-bestsellers-492620
     dataset: nyt_raw
     tables:
       - name: raw_bestsellers
         description: >
           Append-only landing table for NYT bestseller snapshots. One row per
-          (pulled_at, list_name, rank). Not deduped — re-running the pipeline
-          on the same day produces duplicate rows. The intermediate model's
-          recency_rank handles this softly by grouping ties.
+          (pulled_at, list_name, rank). Not deduped at this layer, so running
+          the pipeline twice on the same day produces duplicate rows.
+          Deduplication happens downstream in stg_nyt_bestsellers, which keeps
+          the most recent pull per (pulled_date, list_name, rank) and enforces
+          that grain with a uniqueness test.
         columns:
           - name: pulled_at
             description: UTC timestamp of when the ingest script ran.

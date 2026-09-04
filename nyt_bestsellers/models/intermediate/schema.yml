@@ -69,7 +69,7 @@ models:
           rank() over (partition by list_name order by pulled_date desc).
           recency_rank = 1 means "most recent snapshot for this category."
           Downstream models can filter on this to pick the latest week without
-          hard-coding a date. Note: rank() not row_number() — if two pulls
+          hard-coding a date. Note: rank() not row_number(), so if two pulls
           land on the same pulled_date, both get rank 1 (intentional, since
           they represent the same logical snapshot).
         tests:

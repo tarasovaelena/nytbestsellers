@@ -6,16 +6,24 @@ Weekly Airflow DAG that runs the NYT Bestsellers data pipeline end to end:
   2. Transform via dbt models (staging -> intermediate -> marts) and run
      all schema.yml tests
 
-Trigger: externally triggered, not on Airflow's own cron. A Windows Task
-Scheduler job wakes the laptop ~11:45 PM every Wednesday, starts Docker +
-this stack, and explicitly runs `airflow dags trigger` for this DAG (see
-scripts/run_weekly_pipeline.py in the project root). `schedule=None` below
-is deliberate: this DAG used to run on "0 0 * * 4" (Thursday 00:00 ET),
-but with an external trigger also in play, Airflow's own cron would
-sometimes fire its own separate run in the same window the external
-trigger did — producing two DagRuns and two appends to raw_bestsellers.
-Setting schedule=None makes the external trigger the single source of
-truth for "when does this run."
+Schedule: every Thursday at midnight America/New_York time, just after the
+NYT publishes the updated bestseller lists. Airflow's own scheduler owns
+the timing. The stack is expected to be running continuously (Docker
+Desktop starts on login, and every service in docker-compose.yaml is
+`restart: always`), so there is no external trigger involved.
+
+Note on missed runs: catchup=False does NOT mean "never run late." It means
+the scheduler creates a run for the *most recent* missed interval only,
+rather than every interval back to start_date (which is what catchup=True
+would do). So if the laptop is off at Thursday 00:00 and the stack comes
+up Friday, Airflow fires that week's run on Friday, so the week self-heals
+instead of being lost. Restarting the stack again later does not re-run it,
+because that interval already has a DagRun recorded.
+
+This is the desired behavior here. The NYT Books API only ever returns the
+*current* bestseller list, so a late run still captures useful data; what
+we want to avoid is many stacked historical runs all fetching identical
+current data, which is exactly what catchup=True would produce.
 
 CONTAINER LAYOUT (set up via airflow/docker-compose.yaml)
 ---------------------------------------------------------
@@ -50,10 +58,11 @@ default_args = {
 
 @dag(
     dag_id="nyt_bestsellers_pipeline",
-    description="Weekly NYT Bestseller ingestion + dbt transformation (externally triggered)",
-    # No internal cron — see the module docstring. Triggered only via
-    # `airflow dags trigger` (by scripts/run_weekly_pipeline.py, or manually).
-    schedule=None,
+    description="Weekly NYT Bestseller ingestion + dbt transformation",
+    # Cron interpretation uses the timezone of the `start_date` below.
+    # "0 0 * * 4" + tz="America/New_York" = midnight every Thursday in NY,
+    # automatically respecting EST/EDT shifts.
+    schedule="0 0 * * 4",
     start_date=pendulum.datetime(2026, 6, 11, tz="America/New_York"),
     catchup=False,          # don't backfill missed runs from before start_date
     max_active_runs=1,      # never run two instances of this DAG in parallel

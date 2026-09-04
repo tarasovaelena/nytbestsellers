@@ -55,21 +55,16 @@ stage_label(28.5, "Stage 2", "Storage")
 # ---- Stage 3: Transform (UPDATED) ----
 s3 = box(LEFT, 42.5, WIDE_W, 9.5,
           "dbt (transformation)",
-          "stg_nyt_bestsellers → int_bestsellers_by_category → fct_bestsellers_summary\n(GROUPING SETS — 6 rollup grains, 1 model)",
+          "stg_nyt_bestsellers → int_bestsellers_by_category → fct_bestsellers_summary\n(GROUPING SETS: 6 rollup grains, 1 model)",
           "#ECEBFB", "#6B5FC4", "#3B3480", fontsize_sub=10.8)
 stage_label(47, "Stage 3", "Transform")
 
-# ---- Stage 4: Delivery (split) ----
-HALF_W = 33
-s4a = box(LEFT, 60.5, HALF_W, 9.5,
-           "Email digest",
-           "Python + SendGrid per category",
-           "#FDEDEC", "#C0524A", "#7A2E28")
-s4b = box(LEFT + WIDE_W - HALF_W, 60.5, HALF_W, 9.5,
-           "Looker Studio",
-           "Rank trends, weeks on list",
-           "#FDF1E0", "#C98A2E", "#7A5518")
-stage_label(65, "Stage 4", "Delivery")
+# ---- Stage 4: Visualization ----
+s4 = box(LEFT, 60.5, WIDE_W, 9.5,
+          "Looker Studio",
+          "Market concentration, longevity and churn, current top 10",
+          "#FDF1E0", "#C98A2E", "#7A5518")
+stage_label(65, "Stage 4", "Visualization")
 
 # ---- Stage 5: Orchestrate (UPDATED) ----
 s5 = box(LEFT, 81, WIDE_W, 9.5,
@@ -85,18 +80,11 @@ varrow(cx, 17.5, 24)
 # Stage2 -> Stage3
 varrow(cx, 33.5, 42.5)
 
-# Stage3 -> Stage4 (split into two)
-x_left_c = LEFT + HALF_W / 2
-x_right_c = LEFT + WIDE_W - HALF_W / 2
-varrow(x_left_c, 52, 60.5)
-varrow(x_right_c, 52, 60.5)
+# Stage3 -> Stage4
+varrow(cx, 52, 60.5)
 
-# Stage4 -> Stage5 (merge)
-merge_y = 76.5
-ax.plot([x_left_c, x_left_c], [70, merge_y], color="#5a5a5a", lw=1.6)
-ax.plot([x_right_c, x_right_c], [70, merge_y], color="#5a5a5a", lw=1.6)
-ax.plot([x_left_c, x_right_c], [merge_y, merge_y], color="#5a5a5a", lw=1.6)
-varrow(cx, merge_y, 81)
+# Stage4 -> Stage5
+varrow(cx, 70, 81)
 
 plt.tight_layout(pad=0.6)
 fig.savefig(OUTPUT_PATH, dpi=100, facecolor="white")
